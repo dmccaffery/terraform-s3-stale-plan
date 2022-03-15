@@ -9,6 +9,15 @@ resource "null_resource" "resource" {
   }
 }
 
+resource "null_resource" "error" {
+  for_each = toset(var.diff ? ["true"] : [])
+
+  provisioner "local-exec" {
+    when    = create
+    command = "exit 1"
+  }
+}
+
 resource "random_pet" "name" {
   length    = 2
   separator = "-"

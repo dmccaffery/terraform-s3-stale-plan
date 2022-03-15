@@ -1,5 +1,7 @@
 #! /usr/bin/env sh
 
+set -e
+
 # initialise some state with the default local backend
 terraform init -input=false
 
@@ -13,11 +15,14 @@ terraform init -migrate-state -force-copy -input=false
 terraform plan -var='diff=true' -out terraform.plan
 
 # attempt to apply twice using the same plan (it works -- if it doesn't this script will error out for inspection)
-terraform apply -auto-approve -input=false terraform.plan
+terraform apply -auto-approve -input=false terraform.plan || true
 terraform apply -auto-approve -input=false -backup=backup.tfstate terraform.plan && return 1
 
+# should include the success resource
+terraform state list | grep "null_resource.resource"
+
 # remove the generated backend
-rm backend.tf terraform.plan
+rm -f backend.tf terraform.plan
 
 # migrate the state to the newly created bucket
 terraform init -migrate-state -force-copy -input=false
